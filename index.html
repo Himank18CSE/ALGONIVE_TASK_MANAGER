@@ -1,30 +1,67 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Task Manager</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TaskFlow Pro</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="container">
-  <h1>Task Manager</h1>
+<div class="app">
 
-  <form id="taskForm">
-    <input type="text" id="title" placeholder="Task title" required />
-    <textarea id="description" placeholder="Task description"></textarea>
-    <input type="date" id="dueDate" required />
-    <button type="submit">Add Task</button>
-  </form>
+<header>
+  <h1>TaskFlow Pro</h1>
+  <div class="top-controls">
+    <span id="stats"></span>
+    <button onclick="toggleTheme()">🌙</button>
+  </div>
+</header>
 
-  <div class="filters">
-    <button onclick="filterTasks('all')">All</button>
-    <button onclick="filterTasks('pending')">Pending</button>
-    <button onclick="filterTasks('completed')">Completed</button>
+<div class="progress-wrapper">
+  <svg width="120" height="120">
+    <circle cx="60" cy="60" r="50" stroke="#e5e7eb" stroke-width="10" fill="none"/>
+    <circle id="progressRing" cx="60" cy="60" r="50"
+      stroke="#4f46e5" stroke-width="10" fill="none"
+      stroke-dasharray="314"
+      stroke-dashoffset="314"
+      stroke-linecap="round"/>
+  </svg>
+  <div id="progressText">0%</div>
+</div>
+
+<form id="taskForm" class="task-form">
+  <input type="text" id="title" placeholder="Task title" required>
+  <input type="date" id="dueDate" required>
+  <select id="priority">
+    <option value="low">Low</option>
+    <option value="medium">Medium</option>
+    <option value="high">High</option>
+  </select>
+  <button>Add</button>
+</form>
+
+<div class="board">
+
+  <div class="column" data-status="todo">
+    <h2>To Do</h2>
+    <div class="task-list" id="todo"></div>
   </div>
 
-  <ul id="taskList"></ul>
+  <div class="column" data-status="progress">
+    <h2>In Progress</h2>
+    <div class="task-list" id="progress"></div>
+  </div>
+
+  <div class="column" data-status="done">
+    <h2>Done</h2>
+    <div class="task-list" id="done"></div>
+  </div>
+
 </div>
+
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
