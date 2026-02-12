@@ -1,106 +1,88 @@
 const form = document.getElementById("taskForm");
-const columns = document.querySelectorAll(".task-list");
-const stats = document.getElementById("stats");
-const ring = document.getElementById("progressRing");
-const progressText = document.getElementById("progressText");
+const taskList = document.getElementById("taskList");
+const progressBar = document.getElementById("progressBar");
 
 let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-const circumference = 314;
 
-function save(){ localStorage.setItem("tasks", JSON.stringify(tasks)); }
-
-function updateStats(){
-  const done = tasks.filter(t=>t.status==="done").length;
-  stats.textContent = `${tasks.length} Tasks | ${done} Completed`;
-  const percent = tasks.length ? Math.round(done/tasks.length*100):0;
-  ring.style.strokeDashoffset = circumference - percent/100*circumference;
-  progressText.textContent = percent+"%";
+function save() {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
-function notify(task){
-  if(Notification.permission==="granted"){
-    new Notification("Deadline Near 🔔",{body:task.title});
-  }
+function updateProgress() {
+    const completed = tasks.filter(t => t.completed).length;
+    const percent = tasks.length ? (completed / tasks.length) * 100 : 0;
+    progressBar.style.width = percent + "%";
 }
 
-function render(){
-  columns.forEach(col=>col.innerHTML="");
+function render() {
+    taskList.innerHTML = "";
 
-  tasks.forEach((task,index)=>{
-    const div=document.createElement("div");
-    div.className=`task ${task.priority}`;
-    div.draggable=true;
+    tasks.forEach((task, index) => {
+        const li = document.createElement("li");
+        li.classList.add(task.priority);
+        if (task.completed) li.classList.add("completed");
 
-    const due=new Date(task.dueDate);
-    const today=new Date();
-    if((due-today)/(1000*60*60*24)<=1 && task.status!=="done"){
-      notify(task);
-    }
-
-    div.innerHTML=`
-      <strong contenteditable="true" onblur="editTask(${index},this.innerText)">
-        ${task.title}
-      </strong>
-      <small>Due: ${task.dueDate}</small>
-      <button onclick="removeTask(${index},this)">✖</button>
+        li.innerHTML = `
+      <div>
+        <strong>${task.title}</strong><br>
+        <small>Due: ${task.dueDate}</small>
+      </div>
+      <div>
+        <button class="complete-btn" onclick="toggle(${index})">
+          ${task.completed ? "Undo" : "Done"}
+        </button>
+        <button class="delete-btn" onclick="removeTask(${index},this)">
+          Delete
+        </button>
+      </div>
     `;
 
-    div.addEventListener("dragstart",()=>div.classList.add("dragging"));
-    div.addEventListener("dragend",()=>div.classList.remove("dragging"));
+        taskList.appendChild(li);
+    });
 
-    document.getElementById(task.status).appendChild(div);
-  });
-
-  updateStats();
-  save();
+    updateProgress();
+    save();
 }
 
-function editTask(index,text){
-  tasks[index].title=text;
-  save();
-}
-
-function removeTask(index,btn){
-  const card=btn.closest(".task");
-  card.classList.add("fade-out");
-  setTimeout(()=>{tasks.splice(index,1);render();},400);
-}
-
-form.addEventListener("submit",e=>{
-  e.preventDefault();
-  tasks.push({
-    title:title.value,
-    dueDate:dueDate.value,
-    priority:priority.value,
-    status:"todo"
-  });
-  form.reset();
-  render();
-});
-
-columns.forEach(column=>{
-  column.addEventListener("dragover",e=>{
-    e.preventDefault();
-    const dragging=document.querySelector(".dragging");
-    column.appendChild(dragging);
-  });
-
-  column.addEventListener("drop",()=>{
-    const dragging=document.querySelector(".dragging");
-    const newStatus=column.parentElement.dataset.status;
-    const taskText=dragging.querySelector("strong").innerText;
-    const taskObj=tasks.find(t=>t.title===taskText);
-    taskObj.status=newStatus;
+function toggle(index) {
+    tasks[index].completed = !tasks[index].completed;
     render();
-  });
+}
+
+function removeTask(index, btn) {
+    const li = btn.closest("li");
+    li.classList.add("fade-out");
+
+    setTimeout(() => {
+        tasks.splice(index, 1);
+        render();
+    }, 300);
+}
+const themeSelector = document.getElementById("themeSelector");
+
+const savedTheme = localStorage.getItem("theme") || "light";
+document.body.className = savedTheme;
+themeSelector.value = savedTheme;
+
+themeSelector.addEventListener("change", function () {
+    document.body.className = this.value;
+    localStorage.setItem("theme", this.value);
 });
 
-function toggleTheme(){
-  document.body.classList.toggle("dark");
-}
 
-if("Notification" in window){
-  Notification.requestPermission();
-}
+
+form.addEventListener("submit", e => {
+    e.preventDefault();
+
+    tasks.push({
+        title: title.value,
+        dueDate: dueDate.value,
+        priority: priority.value,
+        completed: false
+    });
+
+    form.reset();
+    render();
+});
 
 render();
